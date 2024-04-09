@@ -7,8 +7,10 @@ environment:
   sdk: '>=3.3.1 <4.0.0'
 
 dependencies:
+  flex_color_picker: ^3.4.1
   flutter:
     sdk: flutter
+  flutter_launcher_icons: ^0.13.1
   http: ^1.2.1
   provider: ^6.1.2
   socket_io_client: ^2.0.3+1

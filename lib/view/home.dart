@@ -1,3 +1,4 @@
+import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:palette_chat/viewmodel/main_view_model.dart';
 import 'package:provider/provider.dart';
@@ -11,6 +12,16 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final _formKey = GlobalKey<FormState>();
+  TextEditingController textEditingController = TextEditingController();
+
+  @override
+  void didChangeDependencies() {
+    textEditingController.text = Provider.of<MainViewModel>(
+      context,
+      listen: true,
+    ).userHex;
+    super.didChangeDependencies();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,34 +33,79 @@ class _HomePageState extends State<HomePage> {
         ));
   }
 
+  //TODO: Add the color picker dialog
+  // Future<bool> colorPickerDialog(MainViewModel model) async {
+  //   return ColorPicker(
+  //     color: model.userColor,
+  //     onColorChanged: (Color color) {
+  //       model.setUserColor(color);
+  //     },
+  //     width: 35,
+  //     height: 35,
+  //     borderRadius: 4,
+  //     spacing: 10,
+  //     runSpacing: 10,
+  //     wheelDiameter: 300,
+  //     subheading: Text(
+  //       'Select color shade',
+  //       style: Theme.of(context).textTheme.titleSmall,
+  //     ),
+  //     heading: Text(
+  //       'Select a color',
+  //       style: Theme.of(context).textTheme.titleSmall,
+  //     ),
+  //     showColorName: true,
+  //     showColorCode: true,
+  //     copyPasteBehavior: const ColorPickerCopyPasteBehavior(
+  //       longPressMenu: true,
+  //     ),
+  //     pickersEnabled: const {
+  //       ColorPickerType.primary: true,
+  //       ColorPickerType.accent: false,
+  //       ColorPickerType.wheel: true,
+  //     },
+  //   ).showPickerDialog(context);
+  // }
+
   Widget _buildColorField() {
     var color = Provider.of<MainViewModel>(context).userColor;
     final model = Provider.of<MainViewModel>(context);
     return Row(children: [
-      Container(
-        height: 50,
-        width: 50,
-        decoration: BoxDecoration(
-          borderRadius:
-              BorderRadius.circular(10), // Adjust the radius as needed
-          border: Border.all(
-            color: Theme.of(context).hintColor, // Border color
-            width: 2, // Border width
-          ),
-          color: color,
-        ),
-      ),
+      TextButton(
+          onPressed: () {
+            //TODO: Add the color picker dialog
+            // colorPickerDialog(model);
+          },
+          child: Container(
+            height: 50,
+            width: 50,
+            decoration: BoxDecoration(
+              borderRadius:
+                  BorderRadius.circular(10), // Adjust the radius as needed
+              border: Border.all(
+                color: Theme.of(context).hintColor, // Border color
+                width: 2, // Border width
+              ),
+              color: color,
+            ),
+          )),
       const SizedBox(
         width: 10,
       ),
       Expanded(
         child: TextFormField(
-            initialValue: model.userHex,
-            onChanged: (value) => model.setUserHex(value),
+            controller: textEditingController,
+            onChanged: (value) => model.setUserColorFromHex(value),
             validator: (value) => model.validateUserColor(value),
             decoration: const InputDecoration(
                 border: OutlineInputBorder(),
-                hintText: "#ffffff",
+                //TODO: Add the prefix icon
+                isDense: true,
+                prefixIcon:
+                    Padding(padding: EdgeInsets.all(15), child: Text('#')),
+                prefixIconConstraints:
+                    BoxConstraints(minWidth: 0, minHeight: 0),
+                hintText: "FFFFFF",
                 labelText: "HEX color")),
       )
     ]);

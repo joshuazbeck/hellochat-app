@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:http/http.dart' as http;
 import 'package:palette_chat/model/message.dart';
@@ -7,33 +8,46 @@ import 'package:palette_chat/model/session.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
 class MessagingService {
-  static MessagingService standard = MessagingService();
+  //Static accesor
+  MessagingService._privateConstructor();
+  static MessagingService? _instance;
+  factory MessagingService() =>
+      _instance ??= MessagingService._privateConstructor();
+
   final String _baseUrl = "dev.joshzbeck.com";
   final String _apiTag = "/chatapi/v1";
   final String _socketUrl = 'https://dev.joshzbeck.com';
+
   String get socketURL => _socketUrl;
   String get baseUrl => _baseUrl;
+  io.Socket? _socket;
+  void disconnectSocket() {
+    if (_socket != null) {
+      _socket!.clearListeners();
+    }
+  }
 
   Future<int?> listenToSocket(String name, String colorHex,
       dynamic Function(dynamic) messageHandler) async {
-    io.Socket socket =
-        io.io(MessagingService.standard.socketURL, <String, dynamic>{
+    io.Socket socket = io.io(MessagingService().socketURL, <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
     });
-    int? sessionId =
-        await MessagingService.standard.generateSession(name, colorHex);
+    _socket = socket;
+    int? sessionId = await MessagingService().generateSession(name, colorHex);
     if (sessionId != null) {
       socket.connect();
 
       socket.onConnect((_) => print("Connected to the socket"));
 
-      socket.onDisconnect((_) => print("Disconnected from socket"));
+      socket.onDisconnect((_) {
+        print("Disconnected from socket");
+        socket.clearListeners();
+      });
 
       // Connect the current session to the socket
       socket.emit("add_session", sessionId);
 
-      // Handle incoming messages
       socket.on('send_message', messageHandler);
     } else {
       throw Exception("We couldn't connect to the session");
@@ -46,6 +60,7 @@ class MessagingService {
       'text': text,
       'sessionId': sessionId,
     };
+
     final bodyJson = jsonEncode(body);
     final headers = {HttpHeaders.contentTypeHeader: 'application/json'};
     final uri = Uri.https(_baseUrl, '$_apiTag/message/post');
@@ -120,6 +135,7 @@ class MessagingService {
     } on FormatException catch (e) {
       print('The provided string is not valid JSON');
     }
+    return null;
   }
 
   Future<List<Message>> _getListMessages() async {
@@ -162,10 +178,5 @@ class MessagingService {
     } on FormatException catch (e) {
       throw Exception('The provided string is not valid JSON');
     }
-  }
-
-  List<Session> activeSessions() {
-    // /session/active
-    return [];
   }
 }

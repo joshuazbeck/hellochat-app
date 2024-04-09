@@ -1,41 +1,37 @@
+import 'dart:math';
+import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:palette_chat/view/chat.dart';
-import 'package:palette_chat/extension/color.dart';
 
 class MainViewModel with ChangeNotifier {
   String _userFullname = "";
+  late Color _userColor;
   late String _userHex;
 
   MainViewModel() {
-    _userHex = HexColor.randomHex();
+    _userColor =
+        Color((Random().nextDouble() * 0xFFFFFF).toInt()).withOpacity(1.0);
+    _userHex = _userColor.hex;
   }
-  // Getters
+  
   String get userFullname => _userFullname;
-  Color get userColor {
-    return HexColor.fromHex(_userHex);
-  }
-
   String get userHex => _userHex;
+  Color get userColor => _userColor;
 
   void setUserFullname(String name) {
     _userFullname = name;
+    notifyListeners(); //Notify listeners is paramount or else "state" [the backbone of the app] will not update
+  }
+
+  void setUserColorFromHex(String colorHex) {
+    _userColor = colorHex.toColorShort(true); //Returns black if no return
+    _userHex = colorHex;
     notifyListeners();
   }
 
-  bool _isValid(String hex) {
-    try {
-      HexColor.fromHex(hex);
-      return true;
-    } on FormatException {
-      return false;
-    }
-  }
-
-  void setUserHex(String hex) {
-    if (!_isValid(hex)) {
-      return;
-    }
-    _userHex = hex;
+  void setUserColor(Color color) {
+    _userColor = color;
+    _userHex = color.hex;
     notifyListeners();
   }
 
@@ -50,12 +46,13 @@ class MainViewModel with ChangeNotifier {
     if (colorHex == null || colorHex.isEmpty) {
       return "Must specify a color hex";
     }
-    if (!_isValid(colorHex)) {
+    if (colorHex.toColorMaybeNull == null) {
       return "Invalid color. Must be in hex format";
     }
     return null;
   }
 
+  //TODO: Implement openChat(BuildContext context)
   void openChat(BuildContext context) {
     Navigator.push(
       context,
