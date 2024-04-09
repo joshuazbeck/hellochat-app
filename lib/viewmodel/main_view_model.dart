@@ -13,11 +13,12 @@ class MainViewModel with ChangeNotifier {
         Color((Random().nextDouble() * 0xFFFFFF).toInt()).withOpacity(1.0);
     _userHex = _userColor.hex;
   }
-  
+
   String get userFullname => _userFullname;
   String get userHex => _userHex;
   Color get userColor => _userColor;
 
+  //TODO: Implement setUserFullname
   void setUserFullname(String name) {
     _userFullname = name;
     notifyListeners(); //Notify listeners is paramount or else "state" [the backbone of the app] will not update
